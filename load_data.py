@@ -17,7 +17,7 @@ class FacesDataset(Dataset):
         # initializing transforms, resize, random crops
         self.transform = transform
         self.resizer = Resize(224)
-        self.cropper = CenterCrop(224)
+        #self.cropper = CenterCrop(224)
         self.to_tensor = ToTensor()
     
     def __len__(self):
@@ -38,7 +38,7 @@ class FacesDataset(Dataset):
         image = Image.open(image_name)
 
         # applying transformations
-        return self.cropper(self.resizer(self.to_tensor(image)))
+        return (self.resizer(self.to_tensor(image)))
 
 
 
