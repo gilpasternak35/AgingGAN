@@ -17,8 +17,9 @@ class Generator(nn.Module):
         # initializing layers
         self.first_conv = nn.Conv2d(in_channels=input_channels, out_channels=hidden_channels, kernel_size=3, padding="same")
         self.activation = nn.ReLU()
+        self.bn = nn.BatchNorm2d(num_features=hidden_channels)
         self.second_conv = nn.Conv2d(in_channels = hidden_channels, out_channels = input_channels, kernel_size=3, padding="same")
-        self.out_activation = nn.Tanh()
+        self.out_activation = nn.Sigmoid()
 
         # initializing input shape for random noise generation
         self.input_shape = (ex_per_batch,) + input_shape
@@ -31,7 +32,7 @@ class Generator(nn.Module):
         input = self.sample_noise()
 
         # computing first activation
-        first_activation = self.activation(self.first_conv(input))
+        first_activation = self.bn(self.activation(self.first_conv(input)))
 
         # returning second activation
         return self.out_activation(self.second_conv(first_activation))
