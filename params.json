@@ -1,0 +1,16 @@
+{
+  "data_path": "utkcropped",
+  "model_params":
+  {
+    "input_size": 200,
+    "hidden_size": 100,
+    "num_channels": 3,
+    "batch_size": 16,
+    "hidden_generator_channels": 10
+  },
+  "training_params":
+  {
+    "lr": 0.001,
+    "epochs": 10
+  }
+}
