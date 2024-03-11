@@ -12,11 +12,10 @@ class FacesDataset(Dataset):
         :param transform: set of transforms to apply
         """
         # getting image names in directory
-        self.image_names = [os.path.join(path, fname) for fname in os.listdir(path)]
+        self.image_names = [os.path.join(path, fname) for fname in os.listdir(path) if "jpg" in fname][:2000]
 
         # initializing transforms, resize, random crops
         self.transform = transform
-        self.resizer = Resize(224)
         self.to_tensor = ToTensor()
     
     def __len__(self):
@@ -37,7 +36,7 @@ class FacesDataset(Dataset):
         image = Image.open(image_name)
 
         # applying transformations
-        return self.resizer(self.to_tensor(image))
+        return self.to_tensor(image)
 
 
 
