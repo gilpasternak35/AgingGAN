@@ -92,17 +92,19 @@ def train(config: dict) -> None:
             final_disc_loss.backward()
             disc_optimizer.step()
 
-            # getting generator loss - want discriminator outputs to be tricked into "real" labels
-            generator.zero_grad()
-            generator_labels = torch.ones(batch_size,1).to(device)
-            generator_loss = criterion(discriminator(generator.forward(device)), generator_labels )
+            for i in range(4):
+                # getting generator loss - want discriminator outputs to be tricked into "real" labels
+                generator.zero_grad()
+                generator_labels = torch.ones(batch_size,1).to(device)
+                generations = generator.forward(device)
+                generator_loss = criterion(discriminator(generations), generator_labels )
 
-            # back-propagating
-            generator_loss.backward()
-            gen_optimizer.step()
+                # back-propagating
+                generator_loss.backward()
+                gen_optimizer.step()
 
             # printing loss and the like
-            if batch_num % 5 == 0:
+            if batch_num % 2 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # showing generated images at the end of the epoch
