@@ -17,8 +17,7 @@ class FacesDataset(Dataset):
         # initializing transforms, resize, random crops
         self.transform = transform
         self.to_tensor = ToTensor()
-        self.normalize = Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    
+
     def __len__(self):
         """
         Len override
@@ -37,7 +36,7 @@ class FacesDataset(Dataset):
         image = Image.open(image_name)
 
         # applying transformations
-        return self.normalize(self.to_tensor(image))
+        return self.to_tensor(image)
 
 
 
