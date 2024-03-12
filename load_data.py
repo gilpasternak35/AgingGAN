@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
-from torchvision.transforms import ToTensor, CenterCrop, Resize
+from torchvision.transforms import ToTensor, CenterCrop, Resize, Normalize
 import os
 
 class FacesDataset(Dataset):
@@ -17,6 +17,7 @@ class FacesDataset(Dataset):
         # initializing transforms, resize, random crops
         self.transform = transform
         self.to_tensor = ToTensor()
+        self.normalize = Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     
     def __len__(self):
         """
@@ -36,7 +37,7 @@ class FacesDataset(Dataset):
         image = Image.open(image_name)
 
         # applying transformations
-        return self.to_tensor(image)
+        return self.normalize(self.to_tensor(image))
 
 
 
