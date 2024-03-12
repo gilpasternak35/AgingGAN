@@ -37,7 +37,7 @@ class Generator(nn.Module):
 
 
         # output activation
-        self.output_activation = nn.Softmax()
+        self.output_activation = nn.Sigmoid()
 
         # initializing input shape for random noise generation
         self.input_shape = (ex_per_batch,) + input_shape

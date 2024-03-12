@@ -3,7 +3,7 @@
   "model_params":
   {
     "input_size": 200,
-    "hidden_size": 100,
+    "hidden_size": 150,
     "num_channels": 3,
     "batch_size": 16,
     "hidden_generator_channels": 15

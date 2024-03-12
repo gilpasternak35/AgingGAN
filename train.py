@@ -1,6 +1,7 @@
 import torch.cuda
 from torch.optim import Adam
 from torch.nn import BCELoss
+from torch.optim.lr_scheduler import LinearLR
 from torch.utils.data import DataLoader
 from load_data import FacesDataset
 import matplotlib.pyplot as plt
@@ -24,6 +25,18 @@ def show_images(data_path: str) -> None:
         # showing image, re-permuting so that pixel channels appear first
         plt.imshow(batch[0].permute(1, 2, 0))
         plt.show()
+
+
+def init_weights(layer: torch.nn.Module) -> None:
+    """
+    Initializes weights in a given layer
+    :param network: a network for whom to initialize weights
+    :return: nothing, simply initialize the layer weights
+    """
+    # if initialize-able layer, initialize with normal distribution
+    if isinstance(layer, torch.nn.ConvTranspose2d) or isinstance(layer, torch.nn.Conv2d) or isinstance(layer, torch.nn.Linear):
+        torch.nn.init.normal_(layer.weight, 0, 0.02)
+        layer.bias.data.fill_(0.01)
 
 
 def train(config: dict) -> None:
@@ -57,6 +70,7 @@ def train(config: dict) -> None:
 
     # initializing generator and discriminator, as well as optimizers and loss
     generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size).to(device)
+    generator.apply(init_weights)
     discriminator = Discriminator(input_dims=(batch_size, ) + data_shape).to(device)
 
     # optimizers and loss
@@ -92,19 +106,18 @@ def train(config: dict) -> None:
             final_disc_loss.backward()
             disc_optimizer.step()
 
-            for i in range(4):
-                # getting generator loss - want discriminator outputs to be tricked into "real" labels
-                generator.zero_grad()
-                generator_labels = torch.ones(batch_size,1).to(device)
-                generations = generator.forward(device)
-                generator_loss = criterion(discriminator(generations).view(-1), generator_labels.reshape(16))
+            # getting generator loss - want discriminator outputs to be tricked into "real" labels
+            generator.zero_grad()
+            generator_labels = torch.ones(batch_size,1).to(device)
+            generations = generator.forward(device)
+            generator_loss = criterion(discriminator(generations), generator_labels)
 
-                # back-propagating
-                generator_loss.backward()
-                gen_optimizer.step()
+            # back-propagating
+            generator_loss.backward()
+            gen_optimizer.step()
 
             # printing loss and the like
-            if batch_num % 2 == 0:
+            if batch_num % 5 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # showing generated images at the end of the epoch
