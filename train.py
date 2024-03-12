@@ -70,7 +70,7 @@ def train(config: dict) -> None:
         # loading a batch
         for batch_num, real_image_batch in enumerate(dataloader):
             # appending generated images
-            generated_images = generator.forward(device).to(device)
+            generated_images = generator.forward(device).detach().to(device)
             real_image_batch = real_image_batch.to(device)
 
             # computing labels
@@ -97,7 +97,7 @@ def train(config: dict) -> None:
                 generator.zero_grad()
                 generator_labels = torch.ones(batch_size,1).to(device)
                 generations = generator.forward(device)
-                generator_loss = criterion(discriminator(generations), generator_labels )
+                generator_loss = criterion(discriminator(generations).view(-1), generator_labels.reshape(16))
 
                 # back-propagating
                 generator_loss.backward()

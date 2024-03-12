@@ -6,11 +6,11 @@
     "hidden_size": 100,
     "num_channels": 3,
     "batch_size": 16,
-    "hidden_generator_channels": 10
+    "hidden_generator_channels": 15
   },
   "training_params":
   {
-    "lr": 0.001,
+    "lr": 0.0001,
     "epochs": 10
   }
 }
