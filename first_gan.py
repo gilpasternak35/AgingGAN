@@ -1,5 +1,14 @@
 # imports of relevant functions
 from torch import rand, tensor, nn, flatten
+import torch
+
+# using gpu if available
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    print("GPU unavailable, using CPU instead")
+    device = torch.device("cpu")
+
 
 
 class Generator(nn.Module):
@@ -29,7 +38,7 @@ class Generator(nn.Module):
         computes a single forward pass of the generator, returning a generated value
         :return: activation of final layer of forward pass
         """
-        input = self.sample_noise()
+        input = self.sample_noise().to(device)
 
         # computing first activation
         first_activation = self.bn(self.activation(self.first_conv(input)))

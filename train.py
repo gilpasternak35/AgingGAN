@@ -56,8 +56,8 @@ def train(config: dict) -> None:
     num_epochs, lr = training_params['epochs'], training_params['lr']
 
     # initializing generator and discriminator, as well as optimizers and loss
-    generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size)
-    discriminator = Discriminator(input_dims=(batch_size, ) + data_shape)
+    generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size).to(device)
+    discriminator = Discriminator(input_dims=(batch_size, ) + data_shape).to(device)
 
     # optimizers and loss
     gen_optimizer = Adam(params=generator.parameters(), lr=lr)
@@ -70,11 +70,12 @@ def train(config: dict) -> None:
         # loading a batch
         for batch_num, real_image_batch in enumerate(dataloader):
             # appending generated images
-            generated_images = generator.forward()
+            generated_images = generator.forward(device).to(device)
+            real_image_batch = real_image_batch.to(device)
 
             # computing labels
-            real_labels = torch.ones((batch_size,1))
-            fake_labels = torch.zeros((batch_size,1))
+            real_labels = torch.ones((batch_size,1)).to(device)
+            fake_labels = torch.zeros((batch_size,1)).to(device)
 
             # zeroing out gradient and getting discriminator loss
             discriminator.zero_grad()
@@ -93,7 +94,8 @@ def train(config: dict) -> None:
 
             # getting generator loss - want discriminator outputs to be tricked into "real" labels
             generator.zero_grad()
-            generator_loss = criterion(discriminator(generator.forward()), torch.ones(batch_size,1))
+            generator_labels = torch.ones(batch_size,1).to(device)
+            generator_loss = criterion(discriminator(generator.forward(device)), generator_labels )
 
             # back-propagating
             generator_loss.backward()
@@ -104,7 +106,7 @@ def train(config: dict) -> None:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # showing generated images at the end of the epoch
-        plt.imshow(generator.forward()[0].detach().permute(1, 2, 0))
+        plt.imshow(generator.forward(device)[0].cpu().detach().permute(1, 2, 0))
         plt.show()
 
 
