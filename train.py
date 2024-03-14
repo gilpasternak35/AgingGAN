@@ -25,4 +25,4 @@ def show_images(data_path: str) -> None:
 
 
 if __name__ == "__main__":
-    show_images("utkcropped")
+    show_images("C:/Users/maxes/Downloads/part1")
