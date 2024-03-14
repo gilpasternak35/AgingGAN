@@ -93,12 +93,15 @@ class Discriminator(nn.Module):
         :return: the probability that this tensor belongs to the actual data
         """
         # computing hidden activation - this is an image
-        hidden_activation = self.activation(self.linear_layer(self.activation(self.conv_layer(input))))
+        conv = self.conv_layer(input)
+        activation1 = flatten(self.activation(conv), start_dim=1)
+        linear_layer = self.linear_layer(activation1)
+        hidden_activation = self.activation(linear_layer)
 
         # returning a result of linear layer applied to the flattened image.
         # Turned into probability of image being from non-generate data
         result = self.classification_activation(
                 self.linear_layer2(
-                    flatten(hidden_activation, start_dim=1)))
+                    hidden_activation))
 
         return result
