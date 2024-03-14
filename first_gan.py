@@ -25,19 +25,19 @@ class Generator(nn.Module):
 
         # initializing layers - unet style sequential encoder and decoder
         self.encoder = nn.Sequential(nn.Conv2d(in_channels=input_channels, out_channels=16, kernel_size=3, stride = 2, padding=1),
-                                     nn.GELU(),
-                                     nn.BatchNorm2d(num_features=16), nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.GELU(),
+                                     nn.LeakyReLU(),
+                                     nn.BatchNorm2d(num_features=16), nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(),
                                      nn.BatchNorm2d(num_features=32),
-                                     nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.GELU())
+                                     nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(), nn.BatchNorm2d(64), nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1), nn.BatchNorm2d(128))
 
         # more unet style sequential encoder and decoder
-        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride = 2, padding=0, output_padding=0),
-                                     nn.GELU(), nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, stride=2, padding=1), nn.GELU(),
-                                     nn.ConvTranspose2d(in_channels=16, out_channels=input_channels, kernel_size=3, stride=2, padding=1))
+        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride = 2, padding=0),
+                                     nn.LeakyReLU(), nn.BatchNorm2d(64), nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(), nn.BatchNorm2d(32),
+                                     nn.ConvTranspose2d(in_channels=32, out_channels=input_channels, kernel_size=3, stride=2, padding=1))
 
 
         # output activation
-        self.output_activation = nn.Sigmoid()
+        self.output_activation = nn.Tanh()
 
         # initializing input shape for random noise generation
         self.input_shape = (ex_per_batch,) + input_shape
@@ -80,10 +80,10 @@ class Discriminator(nn.Module):
         super().__init__()
 
         # convolution, followed by a flattening and mapping to a binary output
-        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 1,kernel_size=3, padding="same")
+        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2, kernel_size=3, padding="same")
         self.activation = nn.ReLU()
-        self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3], out_features = 128)
-        self.linear_layer2 = nn.Linear(128, out_features = 1)
+        self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
+        self.linear_layer2 = nn.Linear(256, out_features = 1)
         self.classification_activation = nn.Sigmoid()
 
     def forward(self, input: tensor) -> tensor:
@@ -93,10 +93,14 @@ class Discriminator(nn.Module):
         :return: the probability that this tensor belongs to the actual data
         """
         # computing hidden activation - this is an image
+<<<<<<< HEAD
         conv = self.conv_layer(input)
         activation1 = flatten(self.activation(conv), start_dim=1)
         linear_layer = self.linear_layer(activation1)
         hidden_activation = self.activation(linear_layer)
+=======
+        hidden_activation = self.activation(self.linear_layer(flatten(self.activation(self.conv_layer(input)),  start_dim=1)))
+>>>>>>> gil_gan
 
         # returning a result of linear layer applied to the flattened image.
         # Turned into probability of image being from non-generate data
