@@ -78,6 +78,8 @@ def train(config: dict) -> None:
     disc_optimizer = Adam(params=discriminator.parameters(), lr=lr)
     criterion = BCELoss()
 
+    print('\n----BEGIN TRAINING----\n')
+
     # for every epoch
     for epoch in range(num_epochs):
 
@@ -88,8 +90,8 @@ def train(config: dict) -> None:
             real_image_batch = real_image_batch.to(device)
 
             # computing labels
-            real_labels = torch.ones((batch_size,1)).to(device)
-            fake_labels = torch.zeros((batch_size,1)).to(device)
+            real_labels = torch.full((batch_size,1), -1).to(device)
+            fake_labels = torch.ones((batch_size,1)).to(device)
 
             # zeroing out gradient and getting discriminator loss
             discriminator.zero_grad()
@@ -121,10 +123,10 @@ def train(config: dict) -> None:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # showing generated images at the end of the epoch
-        if epoch == 29:
-            pxls = (generator.forward(device)[0].cpu() +  1)/2
-            plt.imshow(pxls.detach().permute(1, 2, 0))
-            plt.show()
+        #if epoch == 29:
+        pxls = (generator.forward(device)[0].cpu() +  1)/2
+        plt.imshow(pxls.detach().permute(1, 2, 0))
+        plt.show()
 
 
 if __name__ == "__main__":

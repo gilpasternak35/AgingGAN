@@ -84,7 +84,7 @@ class Discriminator(nn.Module):
         self.activation = nn.ReLU()
         self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
         self.linear_layer2 = nn.Linear(256, out_features = 1)
-        self.classification_activation = nn.Sigmoid()
+        self.classification_activation = nn.Linear(1, 1)
 
     def forward(self, input: tensor) -> tensor:
         """
@@ -93,14 +93,7 @@ class Discriminator(nn.Module):
         :return: the probability that this tensor belongs to the actual data
         """
         # computing hidden activation - this is an image
-<<<<<<< HEAD
-        conv = self.conv_layer(input)
-        activation1 = flatten(self.activation(conv), start_dim=1)
-        linear_layer = self.linear_layer(activation1)
-        hidden_activation = self.activation(linear_layer)
-=======
         hidden_activation = self.activation(self.linear_layer(flatten(self.activation(self.conv_layer(input)),  start_dim=1)))
->>>>>>> gil_gan
 
         # returning a result of linear layer applied to the flattened image.
         # Turned into probability of image being from non-generate data
