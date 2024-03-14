@@ -31,13 +31,13 @@ class Generator(nn.Module):
                                      nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.GELU())
 
         # more unet style sequential encoder and decoder
-        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride = 2, padding=0, output_padding=0),
+        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride = 2, padding=0),
                                      nn.GELU(), nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, stride=2, padding=1), nn.GELU(),
                                      nn.ConvTranspose2d(in_channels=16, out_channels=input_channels, kernel_size=3, stride=2, padding=1))
 
 
         # output activation
-        self.output_activation = nn.Sigmoid()
+        self.output_activation = nn.Tanh()
 
         # initializing input shape for random noise generation
         self.input_shape = (ex_per_batch,) + input_shape
@@ -80,10 +80,10 @@ class Discriminator(nn.Module):
         super().__init__()
 
         # convolution, followed by a flattening and mapping to a binary output
-        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 1,kernel_size=3, padding="same")
+        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2,kernel_size=3, padding="same")
         self.activation = nn.ReLU()
-        self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3], out_features = 128)
-        self.linear_layer2 = nn.Linear(128, out_features = 1)
+        self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
+        self.linear_layer2 = nn.Linear(256, out_features = 1)
         self.classification_activation = nn.Sigmoid()
 
     def forward(self, input: tensor) -> tensor:
@@ -93,12 +93,12 @@ class Discriminator(nn.Module):
         :return: the probability that this tensor belongs to the actual data
         """
         # computing hidden activation - this is an image
-        hidden_activation = self.activation(self.linear_layer(self.activation(self.conv_layer(input))))
+        hidden_activation = self.activation(self.linear_layer(flatten(self.activation(self.conv_layer(input)),  start_dim=1)))
 
         # returning a result of linear layer applied to the flattened image.
         # Turned into probability of image being from non-generate data
         result = self.classification_activation(
                 self.linear_layer2(
-                    flatten(hidden_activation, start_dim=1)))
+                    hidden_activation))
 
         return result

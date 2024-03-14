@@ -121,11 +121,13 @@ def train(config: dict) -> None:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
             
             if batch_num % 50 == 0:
-                plt.imshow(generator.forward(device)[0].cpu().detach().permute(1, 2, 0))
+                pxls = (generator.forward(device)[0].cpu() + 1) / 2
+                plt.imshow(pxls.detach().permute(1, 2, 0))
                 plt.show()
 
         # showing generated images at the end of the epoch
-        plt.imshow(generator.forward(device)[0].cpu().detach().permute(1, 2, 0))
+        pxls = (generator.forward(device)[0].cpu() +  1)/2
+        plt.imshow(pxls.detach().permute(1, 2, 0))
         plt.show()
 
 
