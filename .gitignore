@@ -1,0 +1,3 @@
+*.pth
+utkcropped\
+pytorch-CycleGAN-and-pix2pix\datasets\young2old_cropped\
