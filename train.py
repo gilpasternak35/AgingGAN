@@ -35,7 +35,7 @@ def init_weights(layer: torch.nn.Module) -> None:
     """
     # if initialize-able layer, initialize with normal distribution
     if isinstance(layer, torch.nn.ConvTranspose2d) or isinstance(layer, torch.nn.Conv2d) or isinstance(layer, torch.nn.Linear):
-        torch.nn.init.normal_(layer.weight, 0, 0.02)
+        torch.nn.init.kaiming_normal(layer.weight)
         layer.bias.data.fill_(0.01)
 
 
@@ -117,18 +117,14 @@ def train(config: dict) -> None:
             gen_optimizer.step()
 
             # printing loss and the like
-            if batch_num % 5 == 0:
-                print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
-            
             if batch_num % 50 == 0:
-                pxls = (generator.forward(device)[0].cpu() + 1) / 2
-                plt.imshow(pxls.detach().permute(1, 2, 0))
-                plt.show()
+                print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # showing generated images at the end of the epoch
-        pxls = (generator.forward(device)[0].cpu() +  1)/2
-        plt.imshow(pxls.detach().permute(1, 2, 0))
-        plt.show()
+        if epoch == 29:
+            pxls = (generator.forward(device)[0].cpu() +  1)/2
+            plt.imshow(pxls.detach().permute(1, 2, 0))
+            plt.show()
 
 
 if __name__ == "__main__":

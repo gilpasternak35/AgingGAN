@@ -25,15 +25,15 @@ class Generator(nn.Module):
 
         # initializing layers - unet style sequential encoder and decoder
         self.encoder = nn.Sequential(nn.Conv2d(in_channels=input_channels, out_channels=16, kernel_size=3, stride = 2, padding=1),
-                                     nn.GELU(),
-                                     nn.BatchNorm2d(num_features=16), nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.GELU(),
+                                     nn.LeakyReLU(),
+                                     nn.BatchNorm2d(num_features=16), nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(),
                                      nn.BatchNorm2d(num_features=32),
-                                     nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.GELU())
+                                     nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(), nn.BatchNorm2d(64), nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1), nn.BatchNorm2d(128))
 
         # more unet style sequential encoder and decoder
-        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride = 2, padding=0),
-                                     nn.GELU(), nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, stride=2, padding=1), nn.GELU(),
-                                     nn.ConvTranspose2d(in_channels=16, out_channels=input_channels, kernel_size=3, stride=2, padding=1))
+        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride = 2, padding=0),
+                                     nn.LeakyReLU(), nn.BatchNorm2d(64), nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(), nn.BatchNorm2d(32),
+                                     nn.ConvTranspose2d(in_channels=32, out_channels=input_channels, kernel_size=3, stride=2, padding=1))
 
 
         # output activation
@@ -80,7 +80,7 @@ class Discriminator(nn.Module):
         super().__init__()
 
         # convolution, followed by a flattening and mapping to a binary output
-        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2,kernel_size=3, padding="same")
+        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2, kernel_size=3, padding="same")
         self.activation = nn.ReLU()
         self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
         self.linear_layer2 = nn.Linear(256, out_features = 1)
