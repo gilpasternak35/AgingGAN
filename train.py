@@ -84,7 +84,9 @@ def train(config: dict) -> None:
     for epoch in range(num_epochs):
 
         # loading a batch
+        count = 0
         for batch_num, real_image_batch in enumerate(dataloader):
+            count += 1
             # appending generated images
             generated_images = generator.forward(device).detach().to(device)
             real_image_batch = real_image_batch.to(device)
@@ -99,9 +101,13 @@ def train(config: dict) -> None:
             discriminator_outputs_fake = discriminator(generated_images)
 
             # loss on real and generated
+
+            final_disc_loss = torch.mean(discriminator_outputs_real) - torch.mean(discriminator_outputs_fake)
+            '''
             loss_real = criterion(discriminator_outputs_real, real_labels)
             loss_fake = criterion(discriminator_outputs_fake, fake_labels)
             final_disc_loss = loss_real + loss_fake
+            '''
 
 
             # back-propagating
@@ -112,7 +118,10 @@ def train(config: dict) -> None:
             generator.zero_grad()
             generator_labels = torch.ones(batch_size,1).to(device)
             generations = generator.forward(device)
-            generator_loss = criterion(discriminator(generations), generator_labels)
+            #generator_loss = criterion(discriminator(generations), generator_labels)
+            generator_loss = -torch.mean(discriminator(generations))
+
+            
 
             # back-propagating
             generator_loss.backward()
@@ -121,6 +130,7 @@ def train(config: dict) -> None:
             # printing loss and the like
             if batch_num % 50 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
+
 
         # showing generated images at the end of the epoch
         #if epoch == 29:
