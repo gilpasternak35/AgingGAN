@@ -79,6 +79,7 @@ def train(config: dict) -> None:
     criterion = BCELoss()
 
     generator_losses, discriminator_losses, epochs = [], [], []
+    generator_loss, final_disc_loss = 0,0
 
     # for every epoch
     for epoch in range(num_epochs):
@@ -118,14 +119,15 @@ def train(config: dict) -> None:
             generator_loss.backward()
             gen_optimizer.step()
 
-            # appending losses and current epoch for plotting
-            generator_losses.append(generator_loss.item())
-            discriminator_losses.append(final_disc_loss.item())
-            epochs.append(epoch)
 
             # printing loss and the like
             if batch_num % 50 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
+
+        # appending losses and current epoch for plotting
+        epochs.append(epoch)
+        generator_losses.append(generator_loss.item())
+        discriminator_losses.append(final_disc_loss.item())
 
         # showing generated images at the end of the epoch
         if epoch == num_epochs-1 or epoch % training_params['plot_every'] == 0:

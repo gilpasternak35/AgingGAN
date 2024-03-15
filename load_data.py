@@ -12,7 +12,7 @@ class FacesDataset(Dataset):
         :param transform: set of transforms to apply
         """
         # getting image names in directory
-        self.image_names = [os.path.join(path, fname) for fname in os.listdir(path) if "jpg" in fname][:2000]
+        self.image_names = [os.path.join(path, fname) for fname in os.listdir(path) if "jpg" in fname][:4992]
 
         # initializing transforms, resize, random crops
         self.transform = transform

@@ -26,7 +26,7 @@ class Generator(nn.Module):
         # initializing layers - unet style sequential encoder and decoder
         self.fc_map = nn.Linear(100, 2048)
         self.first_conv_t = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride = 2, padding=0)
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
         self.bn1 = nn.BatchNorm2d(num_features=64)
         self.second_conv_t = nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=0)
         self.bn2 =  nn.BatchNorm2d(num_features=32)
@@ -84,7 +84,7 @@ class Discriminator(nn.Module):
 
         # convolution, followed by a flattening and mapping to a binary output
         self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2, kernel_size=3, padding="same")
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
         self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
         self.linear_layer2 = nn.Linear(256, out_features = 1)
         self.classification_activation = nn.Sigmoid()
