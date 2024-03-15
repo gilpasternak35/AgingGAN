@@ -11,6 +11,7 @@
   "training_params":
   {
     "lr": 0.0001,
-    "epochs": 30
+    "epochs": 300,
+    "plot_every": 10
   }
 }

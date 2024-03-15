@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from load_data import FacesDataset
 import matplotlib.pyplot as plt
 import json
-from first_gan import Generator, Discriminator
+from deep_cn_gan import Generator, Discriminator
 
 def show_images(data_path: str) -> None:
     """
@@ -74,9 +74,11 @@ def train(config: dict) -> None:
     discriminator = Discriminator(input_dims=(batch_size, ) + data_shape).to(device)
 
     # optimizers and loss
-    gen_optimizer = Adam(params=generator.parameters(), lr=lr)
+    gen_optimizer = Adam(params=generator.parameters(), lr=lr, betas=[0.5, 0.999])
     disc_optimizer = Adam(params=discriminator.parameters(), lr=lr)
     criterion = BCELoss()
+
+    generator_losses, discriminator_losses, epochs = [], [], []
 
     # for every epoch
     for epoch in range(num_epochs):
@@ -84,6 +86,7 @@ def train(config: dict) -> None:
         # loading a batch
         for batch_num, real_image_batch in enumerate(dataloader):
             # appending generated images
+            discriminator.zero_grad()
             generated_images = generator.forward(device).detach().to(device)
             real_image_batch = real_image_batch.to(device)
 
@@ -92,7 +95,6 @@ def train(config: dict) -> None:
             fake_labels = torch.zeros((batch_size,1)).to(device)
 
             # zeroing out gradient and getting discriminator loss
-            discriminator.zero_grad()
             discriminator_outputs_real = discriminator(real_image_batch)
             discriminator_outputs_fake = discriminator(generated_images)
 
@@ -116,15 +118,28 @@ def train(config: dict) -> None:
             generator_loss.backward()
             gen_optimizer.step()
 
+            # appending losses and current epoch for plotting
+            generator_losses.append(generator_loss.item())
+            discriminator_losses.append(final_disc_loss.item())
+            epochs.append(epoch)
+
             # printing loss and the like
             if batch_num % 50 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # showing generated images at the end of the epoch
-        if epoch == 29:
+        if epoch == num_epochs-1 or epoch % training_params['plot_every'] == 0:
+            # plotting generations and loss curves
             pxls = (generator.forward(device)[0].cpu() +  1)/2
             plt.imshow(pxls.detach().permute(1, 2, 0))
             plt.show()
+
+            # plotting losses
+            plt.plot(epochs, generator_losses)
+            plt.plot(epochs, discriminator_losses)
+            plt.show()
+
+
 
 
 if __name__ == "__main__":
