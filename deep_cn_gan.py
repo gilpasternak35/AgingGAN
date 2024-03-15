@@ -1,5 +1,5 @@
 # imports of relevant functions
-from torch import rand, tensor, nn, flatten
+from torch import randn, tensor, nn, flatten
 import torch
 
 # using gpu if available
@@ -24,17 +24,15 @@ class Generator(nn.Module):
         super().__init__()
 
         # initializing layers - unet style sequential encoder and decoder
-        self.encoder = nn.Sequential(nn.Conv2d(in_channels=input_channels, out_channels=16, kernel_size=3, stride = 2, padding=1),
-                                     nn.LeakyReLU(),
-                                     nn.BatchNorm2d(num_features=16), nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(),
-                                     nn.BatchNorm2d(num_features=32),
-                                     nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(), nn.BatchNorm2d(64), nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1), nn.BatchNorm2d(128))
-
-        # more unet style sequential encoder and decoder
-        self.decoder = nn.Sequential(nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride = 2, padding=0),
-                                     nn.LeakyReLU(), nn.BatchNorm2d(64), nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(), nn.BatchNorm2d(32),
-                                     nn.ConvTranspose2d(in_channels=32, out_channels=input_channels, kernel_size=3, stride=2, padding=1))
-
+        self.fc_map = nn.Linear(100, 2048)
+        self.first_conv_t = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride = 2, padding=0)
+        self.activation = nn.ReLU()
+        self.bn1 = nn.BatchNorm2d(num_features=64)
+        self.second_conv_t = nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=0)
+        self.bn2 =  nn.BatchNorm2d(num_features=32)
+        self.third_conv_t =  nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, stride=2, padding=0)
+        self.bn3 = nn.BatchNorm2d(16)
+        self.fourth_conv_t = nn.ConvTranspose2d(in_channels=16, out_channels=input_channels, kernel_size=3, stride=2, padding=0)
 
         # output activation
         self.output_activation = nn.Tanh()
@@ -49,17 +47,22 @@ class Generator(nn.Module):
         """
         input = self.sample_noise().to(device)
 
-        # applying encoder and decoder
-        encoded = self.encoder(input)
-        decoded = self.decoder(encoded)
+        # resizing input
+        resized_embd = self.activation(self.fc_map(input).reshape(self.input_shape[0], 128, 4, 4))
 
-        # cropping to original size
-        decoded_cropped = decoded[:, :, :self.input_shape[2], :self.input_shape[3]]
+        # first deconvolution layer
+        deconv1 = self.bn1(self.activation(self.first_conv_t(resized_embd)))[:,:, :8, :8]
 
-        # returning cropped tensor of activations
-        return self.output_activation(decoded_cropped)
+        # second deconvolution layer
+        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:, :, :16, :16]
 
+        # third deconvolution layer
+        deconv3 = self.bn3(self.activation(self.third_conv_t(deconv2)))[:, :, :32, :32]
 
+        # computing output activation
+        output = self.output_activation(self.fourth_conv_t(deconv3))[:, :, :64, :64]
+
+        return output
 
 
     def sample_noise(self) -> tensor:
@@ -68,8 +71,7 @@ class Generator(nn.Module):
         :return: a noise sample
         """
         # returns a random noise sample
-        modified_input_shape = (self.input_shape)
-        return rand(self.input_shape)
+        return randn(size = (self.input_shape[0], 100))
 
 
 class Discriminator(nn.Module):
