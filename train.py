@@ -75,7 +75,7 @@ def train(config: dict) -> None:
 
     # optimizers and loss
     gen_optimizer = Adam(params=generator.parameters(), lr=lr, betas=[0.5, 0.999])
-    disc_optimizer = Adam(params=discriminator.parameters(), lr=lr)
+    disc_optimizer = Adam(params=discriminator.parameters(), lr=lr, betas=[0.5, 0.999])
     criterion = BCELoss()
 
     generator_losses, discriminator_losses, epochs = [], [], []
@@ -132,6 +132,7 @@ def train(config: dict) -> None:
         # showing generated images at the end of the epoch
         if epoch == num_epochs-1 or epoch % training_params['plot_every'] == 0:
             # plotting generations and loss curves
+            # TODO: is this the right way to do this?
             pxls = (generator.forward(device)[0].cpu() +  1)/2
             plt.imshow(pxls.detach().permute(1, 2, 0))
             plt.show()
@@ -140,6 +141,9 @@ def train(config: dict) -> None:
             plt.plot(epochs, generator_losses)
             plt.plot(epochs, discriminator_losses)
             plt.show()
+
+            if epoch ==  num_epochs-1:
+                plt.savefig("loss_plots/dcgan_exp.png")
 
 
 
