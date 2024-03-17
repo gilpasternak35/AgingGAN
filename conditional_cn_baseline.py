@@ -24,7 +24,10 @@ class Generator(nn.Module):
         super().__init__()
 
         # initializing layers - unet style sequential encoder and decoder
-        self.fc_map = nn.Linear(100, 2048)
+        self.pre_conv1 = nn.Conv2d(in_channels=input_channels, out_channels = 32, stride=2, kernel_size=5,padding=2)
+        self.pre_conv2 = nn.Conv2d(in_channels=32, out_channels=64, stride=2, kernel_size=5, padding=2)
+        self.pre_conv3 = nn.Conv2d(in_channels=64, out_channels=128, stride=2, kernel_size=5,
+                                   padding=2)
         self.first_conv_t = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=5, stride = 2, padding=0)
         self.activation = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm2d(num_features=64)
@@ -40,18 +43,22 @@ class Generator(nn.Module):
         # initializing input shape for random noise generation
         self.input_shape = (ex_per_batch,) + input_shape
 
-    def forward(self, device):
+    def forward(self, device, input: torch.tensor):
         """
         computes a single forward pass of the generator, returning a generated value
+        :param device: the device to perform compute on
+        :param input: the conditional input to age
         :return: activation of final layer of forward pass
         """
-        input = self.sample_noise().to(device)
+        input = input.to(device)
 
-        # resizing input
-        resized_embd = self.activation(self.fc_map(input).reshape(self.input_shape[0], 128, 4, 4))
+        # applying prior convolutions to get to desired shape
+        downsize_1 = self.activation(self.pre_conv1(input))
+        downsize_2 = self.activation(self.pre_conv2(downsize_1))
+        downsize_3 = self.activation(self.pre_conv3(downsize_2))
 
         # first deconvolution layer
-        deconv1 = self.bn1(self.activation(self.first_conv_t(resized_embd)))[:,:, :8, :8]
+        deconv1 = self.bn1(self.activation(self.first_conv_t(downsize_3)))[:,:, :8, :8]
 
         # second deconvolution layer
         deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:, :, :16, :16]
@@ -63,15 +70,6 @@ class Generator(nn.Module):
         output = self.output_activation(self.fourth_conv_t(deconv3))[:, :, :64, :64]
 
         return output
-
-
-    def sample_noise(self) -> tensor:
-        """
-        Samples noise from a random uniform distribution
-        :return: a noise sample
-        """
-        # returns a random noise sample
-        return randn(size = (self.input_shape[0], 100))
 
 
 class Discriminator(nn.Module):
