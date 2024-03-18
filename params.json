@@ -12,6 +12,7 @@
   {
     "lr": 0.0001,
     "epochs": 200,
-    "plot_every": 20
+    "plot_every": 20,
+    "exp_name": "conditional_baseline"
   }
 }

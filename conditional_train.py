@@ -67,6 +67,7 @@ def train(config: dict) -> None:
 
     # obtaining number of epochs and learning rate
     num_epochs, lr = training_params['epochs'], training_params['lr']
+    experiment_name = training_params['exp_name']
 
     # initializing generator and discriminator, as well as optimizers and loss
     generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size).to(device)
@@ -150,6 +151,9 @@ def train(config: dict) -> None:
             plt.plot(epochs, generator_losses)
             plt.plot(epochs, discriminator_losses)
             plt.show()
+
+            # saving model
+            torch.save(generator, f"models/conditional_gan_epoch{epoch}exp{experiment_name}")
 
 
 
