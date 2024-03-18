@@ -16,7 +16,7 @@ def show_images(data_path: str) -> None:
     """
     # initializing dataloader upon pytorch dataset
     dset = FacesDataset(data_path)
-    loader = DataLoader(dset, batch_size=4)
+    loader = DataLoader(dset, batch_size=4, shuffle=True)
 
     # printing out by batch
     for batch in loader:
@@ -52,7 +52,7 @@ def train(config: dict) -> None:
     # configuring dataloader, with conditional mode dataset (now returning young and old faces as ex label pairs)
     batch_size = model_params['batch_size']
     dataset = FacesDataset(config['data_path'], mode="conditional")
-    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'])
+    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=True)
 
 
     # using gpu if available
