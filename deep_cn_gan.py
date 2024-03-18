@@ -1,5 +1,6 @@
 # imports of relevant functions
 from torch import randn, tensor, nn, flatten
+from torchvision.transforms import CenterCrop
 import torch
 
 # using gpu if available
@@ -27,6 +28,7 @@ class Generator(nn.Module):
         self.fc_map = nn.Linear(100, 2048)
         self.first_conv_t = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=5, stride = 2, padding=0)
         self.activation = nn.LeakyReLU()
+
         self.bn1 = nn.BatchNorm2d(num_features=64)
         self.second_conv_t = nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=5, stride=2, padding=0)
         self.bn2 =  nn.BatchNorm2d(num_features=32)
@@ -36,6 +38,9 @@ class Generator(nn.Module):
 
         # output activation
         self.output_activation = nn.Tanh()
+
+        # initializing centercrops
+        self.CCrop8, self.CCrop16, self.CCrop32, self.CCrop64 = CenterCrop(size = (8, 8)), CenterCrop(size = (16, 16)), CenterCrop(size = (32, 32)), CenterCrop(size = (64, 64))
 
         # initializing input shape for random noise generation
         self.input_shape = (ex_per_batch,) + input_shape
@@ -51,16 +56,16 @@ class Generator(nn.Module):
         resized_embd = self.activation(self.fc_map(input).reshape(self.input_shape[0], 128, 4, 4))
 
         # first deconvolution layer
-        deconv1 = self.bn1(self.activation(self.first_conv_t(resized_embd)))[:,:, :8, :8]
+        deconv1 = self.bn1(self.activation(self.first_conv_t(resized_embd)))[:,:,:8, :8]
 
         # second deconvolution layer
-        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:, :, :16, :16]
+        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:,:,:16, :16]
 
         # third deconvolution layer
-        deconv3 = self.bn3(self.activation(self.third_conv_t(deconv2)))[:, :, :32, :32]
+        deconv3 = self.bn3(self.activation(self.third_conv_t(deconv2)))[:,:,:32, :32]
 
         # computing output activation
-        output = self.output_activation(self.fourth_conv_t(deconv3))[:, :, :64, :64]
+        output = self.output_activation(self.fourth_conv_t(deconv3))[:,:,:64, :64]
 
         return output
 

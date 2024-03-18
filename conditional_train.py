@@ -16,7 +16,7 @@ def show_images(data_path: str) -> None:
     """
     # initializing dataloader upon pytorch dataset
     dset = FacesDataset(data_path)
-    loader = DataLoader(dset, batch_size=4)
+    loader = DataLoader(dset, batch_size=4, shuffle=True)
 
     # printing out by batch
     for batch in loader:
@@ -52,7 +52,7 @@ def train(config: dict) -> None:
     # configuring dataloader, with conditional mode dataset (now returning young and old faces as ex label pairs)
     batch_size = model_params['batch_size']
     dataset = FacesDataset(config['data_path'], mode="conditional")
-    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'])
+    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=True)
 
 
     # using gpu if available
@@ -67,6 +67,7 @@ def train(config: dict) -> None:
 
     # obtaining number of epochs and learning rate
     num_epochs, lr = training_params['epochs'], training_params['lr']
+    experiment_name = training_params['exp_name']
 
     # initializing generator and discriminator, as well as optimizers and loss
     generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size).to(device)
@@ -127,7 +128,7 @@ def train(config: dict) -> None:
 
 
             # printing loss and the like
-            if batch_num % 1 == 0:
+            if batch_num % 30 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # appending losses and current epoch for plotting
@@ -150,6 +151,9 @@ def train(config: dict) -> None:
             plt.plot(epochs, generator_losses)
             plt.plot(epochs, discriminator_losses)
             plt.show()
+
+            # saving model
+            torch.save(generator, f"models/conditional_gan_epoch{epoch}exp{experiment_name}")
 
 
 
