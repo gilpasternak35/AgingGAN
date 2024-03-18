@@ -159,7 +159,11 @@ def train(config: dict) -> None:
 
             # saving model
             print("saving model")
-            torch.save(generator, f"models/conditional_gan_epoch{epoch}exp{experiment_name}")
+            torch.save(generator, f"models/conditional_gan_gen_epoch{epoch}exp{experiment_name}")
+
+            # saving model
+            print("saving model")
+            torch.save(generator, f"models/conditional_gan_disc_epoch{epoch}exp{experiment_name}")
 
 
 
