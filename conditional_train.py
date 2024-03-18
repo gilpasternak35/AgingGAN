@@ -127,7 +127,7 @@ def train(config: dict) -> None:
 
 
             # printing loss and the like
-            if batch_num % 1 == 0:
+            if batch_num % 30 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # appending losses and current epoch for plotting
