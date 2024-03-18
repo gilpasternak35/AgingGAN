@@ -30,7 +30,7 @@ def show_images(data_path: str) -> None:
 def init_weights(layer: torch.nn.Module) -> None:
     """
     Initializes weights in a given layer
-    :param network: a network for whom to initialize weights
+    :param layer: a layer for whom to initialize weights
     :return: nothing, simply initialize the layer weights
     """
     # if initialize-able layer, initialize with normal distribution
@@ -45,9 +45,11 @@ def train(config: dict) -> None:
     :param config: parameter configuration
     :return: Nothing, simply output results
     """
-
     # separating configs
     model_params, training_params= config['model_params'], config['training_params']
+
+    # checking plotting number is valid
+    assert training_params['num_to_plot'] < model_params['batch_size'], "can't plot more examples than available in batch"
 
     # configuring dataloader, with conditional mode dataset (now returning young and old faces as ex label pairs)
     batch_size = model_params['batch_size']
@@ -79,6 +81,7 @@ def train(config: dict) -> None:
     disc_optimizer = Adam(params=discriminator.parameters(), lr=lr)
     criterion = BCELoss()
 
+    # initializing loss values
     generator_losses, discriminator_losses, epochs = [], [], []
     generator_loss, final_disc_loss = 0,0
 
@@ -139,13 +142,15 @@ def train(config: dict) -> None:
         # showing generated images at the end of the epoch
         if epoch == num_epochs-1 or epoch % training_params['plot_every'] == 0:
             # plotting generations and loss curves
-            pxls = (young_images[0].cpu() + 1) / 2
-            plt.imshow(pxls.detach().permute(1, 2, 0))
-            plt.show()
 
-            pxls = (generator.forward(device, young_images)[0].cpu() +  1)/2
-            plt.imshow(pxls.detach().permute(1, 2, 0))
-            plt.show()
+            for idx in range(training_params['num_to_plot']):
+                pxls = (young_images[idx].cpu() + 1) / 2
+                plt.imshow(pxls.detach().permute(1, 2, 0))
+                plt.show()
+
+                pxls = (generator.forward(device, young_images)[idx].cpu() +  1)/2
+                plt.imshow(pxls.detach().permute(1, 2, 0))
+                plt.show()
 
             # plotting losses
             plt.plot(epochs, generator_losses)
@@ -153,6 +158,7 @@ def train(config: dict) -> None:
             plt.show()
 
             # saving model
+            print("saving model")
             torch.save(generator, f"models/conditional_gan_epoch{epoch}exp{experiment_name}")
 
 
