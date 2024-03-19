@@ -58,16 +58,16 @@ class Generator(nn.Module):
         downsize_3 = self.activation(self.pre_conv3(downsize_2))
 
         # first deconvolution layer
-        deconv1 = self.bn1(self.activation(self.first_conv_t(downsize_3)))[:,:, :8, :8]
+        deconv1 = self.bn1(self.activation(self.first_conv_t(downsize_3)[:,:, :8, :8]))
 
         # second deconvolution layer
-        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:, :, :16, :16]
+        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:, :, 2:18, 2:18]
 
         # third deconvolution layer
-        deconv3 = self.bn3(self.activation(self.third_conv_t(deconv2)))[:, :, :32, :32]
+        deconv3 = self.bn3(self.activation(self.third_conv_t(deconv2)))[:, :, 2:34, 2:34]
 
         # computing output activation
-        output = self.output_activation(self.fourth_conv_t(deconv3))[:, :, :64, :64]
+        output = self.output_activation(self.fourth_conv_t(deconv3)[:, :, 2:66, 2:66])
 
         return output
 
@@ -83,6 +83,7 @@ class Discriminator(nn.Module):
         # convolution, followed by a flattening and mapping to a binary output
         self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2, kernel_size=3, padding="same")
         self.activation = nn.ReLU()
+        self.conv_layer_2 = nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, padding="same")
         self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
         self.linear_layer2 = nn.Linear(256, out_features = 1)
         self.classification_activation = nn.Sigmoid()
@@ -94,7 +95,7 @@ class Discriminator(nn.Module):
         :return: the probability that this tensor belongs to the actual data
         """
         # computing hidden activation - this is an image
-        hidden_activation = self.activation(self.linear_layer(flatten(self.activation(self.conv_layer(input)),  start_dim=1)))
+        hidden_activation = self.activation(self.linear_layer(flatten(self.activation(self.conv_layer_2(self.activation(self.conv_layer(input)))),  start_dim=1)))
 
         # returning a result of linear layer applied to the flattened image.
         # Turned into probability of image being from non-generate data
