@@ -62,7 +62,7 @@ class Generator(nn.Module):
         deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)[:, :, 2:34, 2:34]))
 
         # third deconvolution layer
-        output = self.output_activation(self.activation(self.third_conv_t(deconv2)[:, :, 2:66, 2:66]))
+        output = self.output_activation(self.third_conv_t(deconv2)[:, :, 2:66, 2:66])
 
         return output
 
