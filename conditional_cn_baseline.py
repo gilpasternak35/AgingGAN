@@ -24,18 +24,16 @@ class Generator(nn.Module):
         super().__init__()
 
         # initializing layers - unet style sequential encoder and decoder
-        self.pre_conv1 = nn.Conv2d(in_channels=input_channels, out_channels = 32, stride=2, kernel_size=5,padding=2)
-        self.pre_conv2 = nn.Conv2d(in_channels=32, out_channels=64, stride=2, kernel_size=5, padding=2)
-        self.pre_conv3 = nn.Conv2d(in_channels=64, out_channels=128, stride=2, kernel_size=5,
+        self.pre_conv1 = nn.Conv2d(in_channels=input_channels, out_channels = 16, stride=2, kernel_size=5,padding=2)
+        self.pre_conv2 = nn.Conv2d(in_channels=16, out_channels=32, stride=2, kernel_size=5, padding=2)
+        self.pre_conv3 = nn.Conv2d(in_channels=32, out_channels=128, stride=2, kernel_size=5,
                                    padding=2)
         self.first_conv_t = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=5, stride = 2, padding=0)
         self.activation = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm2d(num_features=64)
         self.second_conv_t = nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=5, stride=2, padding=0)
         self.bn2 =  nn.BatchNorm2d(num_features=32)
-        self.third_conv_t = nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=5, stride=2, padding=0)
-        self.bn3 = nn.BatchNorm2d(16)
-        self.fourth_conv_t = nn.ConvTranspose2d(in_channels=16, out_channels=input_channels, kernel_size=5, stride=2, padding=0)
+        self.third_conv_t = nn.ConvTranspose2d(in_channels=32, out_channels=3, kernel_size=5, stride=2, padding=0)
 
         # output activation
         self.output_activation = nn.Tanh()
@@ -58,16 +56,13 @@ class Generator(nn.Module):
         downsize_3 = self.activation(self.pre_conv3(downsize_2))
 
         # first deconvolution layer
-        deconv1 = self.bn1(self.activation(self.first_conv_t(downsize_3)[:,:, :8, :8]))
+        deconv1 = self.bn1(self.activation(self.first_conv_t(downsize_3)[:,:, 2:18, 2:18]))
 
         # second deconvolution layer
-        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)))[:, :, 2:18, 2:18]
+        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)[:, :, 2:34, 2:34]))
 
         # third deconvolution layer
-        deconv3 = self.bn3(self.activation(self.third_conv_t(deconv2)))[:, :, 2:34, 2:34]
-
-        # computing output activation
-        output = self.output_activation(self.fourth_conv_t(deconv3)[:, :, 2:66, 2:66])
+        output = self.output_activation(self.activation(self.third_conv_t(deconv2)[:, :, 2:66, 2:66]))
 
         return output
 
