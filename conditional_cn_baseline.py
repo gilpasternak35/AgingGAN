@@ -28,6 +28,9 @@ class Generator(nn.Module):
         self.pre_conv2 = nn.Conv2d(in_channels=16, out_channels=32, stride=2, kernel_size=5, padding=2)
         self.pre_conv3 = nn.Conv2d(in_channels=32, out_channels=128, stride=2, kernel_size=5,
                                    padding=2)
+
+        # to be used only for residual reshaping
+        self.residual_conv = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=1, padding=0)
         self.first_conv_t = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=5, stride = 2, padding=0)
         self.activation = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm2d(num_features=64)
@@ -59,7 +62,8 @@ class Generator(nn.Module):
         deconv1 = self.bn1(self.activation(self.first_conv_t(downsize_3)[:,:, 2:18, 2:18]))
 
         # second deconvolution layer
-        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)[:, :, 2:34, 2:34]))
+        residual_addition = self.residual_conv(downsize_1)
+        deconv2 = self.bn2(self.activation(self.second_conv_t(deconv1)[:, :, 2:34, 2:34])) + residual_addition
 
         # third deconvolution layer
         output = self.output_activation(self.third_conv_t(deconv2)[:, :, 2:66, 2:66])
