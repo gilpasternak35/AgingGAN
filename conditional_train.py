@@ -1,6 +1,6 @@
 import torch.cuda
 from torch.optim import Adam
-from torch.nn import BCELoss
+from torch.nn import BCELoss, MSELoss
 from torch.optim.lr_scheduler import LinearLR
 from torch.utils.data import DataLoader
 from load_data import FacesDataset
@@ -79,7 +79,7 @@ def train(config: dict) -> None:
     # optimizers and loss
     gen_optimizer = Adam(params=generator.parameters(), lr=lr, betas=[0.5, 0.999])
     disc_optimizer = Adam(params=discriminator.parameters(), lr=lr)
-    criterion = BCELoss()
+    criterion, criterion2= BCELoss(), MSELoss()
 
     # initializing loss values
     generator_losses, discriminator_losses, epochs = [], [], []
@@ -123,7 +123,7 @@ def train(config: dict) -> None:
             generator.zero_grad()
             generator_labels = torch.ones(batch_size,1).to(device)
             generations = generator.forward(device, young_images)
-            generator_loss = criterion(discriminator(generations), generator_labels)
+            generator_loss = criterion(discriminator(generations), generator_labels) + 0.95*criterion2(generations, young_images)
 
             # back-propagating
             generator_loss.backward()
@@ -168,10 +168,10 @@ def train(config: dict) -> None:
 
 
 
-if __name__ == "__main__":
+if __name__ == " __main__":
     # loading parameter config
     with open('params.json', 'r') as param_reader:
         config = json.load(param_reader)
-
+    
     # run training loop
     train(config)
