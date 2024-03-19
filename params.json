@@ -5,7 +5,7 @@
     "input_size": 64,
     "hidden_size": 150,
     "num_channels": 3,
-    "batch_size": 64,
+    "batch_size": 128,
     "hidden_generator_channels": 15
   },
   "training_params":
