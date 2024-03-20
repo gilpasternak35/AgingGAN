@@ -13,15 +13,16 @@ class FacesDataset(Dataset):
         :param size: the size of the data to provide the network
         """
         # getting image names in directory
-        self.young_img_names = [os.path.join(path, fname) for fname in os.listdir(path) if "jpg" in fname and int(fname.split("_")[0]) < 30][:size]
-        self.old_img_names = [os.path.join(path, fname) for fname in os.listdir(path) if
-                              "jpg" in fname and int(fname.split("_")[0]) > 45][:size]
+        if mode == "conditional":
+            self.young_img_names = [os.path.join(path, fname) for fname in os.listdir(path) if "jpg" in fname and int(fname.split("_")[0]) < 30][:size]
+            self.old_img_names = [os.path.join(path, fname) for fname in os.listdir(path) if
+                                  "jpg" in fname and int(fname.split("_")[0]) > 45][:size]
         self.image_names = [os.path.join(path, fname) for fname in os.listdir(path) if "jpg" in fname][:size]
 
         # initializing transforms, resize, random crops
         self.to_tensor = ToTensor()
         self.normalize = Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        self.resize = Resize(size=64)
+        self.resize = Resize(size=(64, 64))
         self.mode = mode
 
     def __len__(self):

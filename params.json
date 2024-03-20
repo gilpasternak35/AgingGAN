@@ -1,5 +1,5 @@
 {
-  "data_path": "../utkcropped",
+  "data_path": "utkcropped",
   "model_params":
   {
     "input_size": 64,
