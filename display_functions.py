@@ -124,5 +124,20 @@ def run_gbp(model, input):
     plt.axis('off')
 
 
+def get_gbp(model, input):
+
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    input = input[np.newaxis,:]
+
+    guided_backprop = GuidedBackpropModel(model)
+    guided_gradients = guided_backprop(device, input)
+
+    guided_gradients = np.squeeze(guided_gradients)
+    guided_gradients = normalize(guided_gradients)
+    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
+
+    return guided_gradients
+
+
 
 
