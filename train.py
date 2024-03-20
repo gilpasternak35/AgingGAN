@@ -46,6 +46,7 @@ def train(config: dict) -> None:
     :return: Nothing, simply output results
     """
 
+    print('BEGINNING TRAINING')
     # separating configs
     model_params, training_params= config['model_params'], config['training_params']
 
