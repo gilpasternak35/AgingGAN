@@ -62,7 +62,10 @@ def train(config: dict) -> None:
         device = torch.device("cuda")
     else:
         print("GPU unavailable, using CPU instead")
+        print('Else')
         device = torch.device("cpu")
+
+    print('Establishing parameters')
 
     # precomputing data shape
     data_shape = (model_params['num_channels'], model_params['input_size'], model_params['input_size'])
