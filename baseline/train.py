@@ -1,12 +1,11 @@
 import torch.cuda
 from torch.optim import Adam
 from torch.nn import BCELoss
-from torch.optim.lr_scheduler import LinearLR
 from torch.utils.data import DataLoader
 from load_data import FacesDataset
 import matplotlib.pyplot as plt
 import json
-from deep_cn_gan import Generator, Discriminator
+from baseline.deep_cn_gan import Generator, Discriminator
 
 def show_images(data_path: str) -> None:
     """
@@ -151,7 +150,7 @@ def train(config: dict) -> None:
 
 if __name__ == "__main__":
     # loading parameter config
-    with open('params.json', 'r') as param_reader:
+    with open('../params.json', 'r') as param_reader:
         config = json.load(param_reader)
 
     # run training loop

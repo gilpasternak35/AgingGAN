@@ -172,7 +172,7 @@ def train(config: dict) -> None:
 
 if __name__ == '__main__':
     # loading parameter config
-    with open('params.json', 'r') as param_reader:
+    with open('../params.json', 'r') as param_reader:
         config = json.load(param_reader )
     
     # run training loop
