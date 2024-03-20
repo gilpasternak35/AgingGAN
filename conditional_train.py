@@ -96,7 +96,6 @@ def train(config: dict) -> None:
         for batch_num, img_label_pair in enumerate(dataloader):
 
             # obtaining young and old image
-            young_images, old_images = img_label_pair
             discriminator.zero_grad()
             young_images = young_images.to(device)
             old_images = old_images.to(device)

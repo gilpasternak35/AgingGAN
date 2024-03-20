@@ -80,10 +80,10 @@ class Discriminator(nn.Module):
         super().__init__()
 
         # convolution, followed by a flattening and mapping to a binary output
-        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 2, kernel_size=3, padding="same")
-        self.activation = nn.ReLU()
-        self.conv_layer_2 = nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, padding="same")
-        self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 2, out_features = 256)
+        self.conv_layer = nn.Conv2d(in_channels = input_dims[1], out_channels = 3, kernel_size=3, padding="same")
+        self.activation = nn.LeakyReLU()
+        self.conv_layer_2 = nn.Conv2d(in_channels=3, out_channels=3, kernel_size=3, padding="same")
+        self.linear_layer = nn.Linear(in_features= input_dims[2] * input_dims[3] * 3, out_features = 256)
         self.linear_layer2 = nn.Linear(256, out_features = 1)
         self.classification_activation = nn.Sigmoid()
 
