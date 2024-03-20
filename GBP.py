@@ -60,7 +60,7 @@ class GuidedBackpropModel:
         return self.model(input)
 
     def __call__(self, input, index=None):
-        output = self.forward(input)
+        output = self.model.forward(input)
 
         if index is None:
             index = torch.argmax(output)
