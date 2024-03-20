@@ -45,6 +45,9 @@ def train(config: dict) -> None:
     :param config: parameter configuration
     :return: Nothing, simply output results
     """
+
+    print('BEGINNING OF TRAIN FUNCTION')
+
     # separating configs
     model_params, training_params= config['model_params'], config['training_params']
 
@@ -56,12 +59,14 @@ def train(config: dict) -> None:
     dataset = FacesDataset(config['data_path'], mode="conditional")
     dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=True)
 
+    print('CHECKING IF GPU IS AVAILABLE')
 
     # using gpu if available
     if torch.cuda.is_available():
         device = torch.device("cuda")
     else:
-        print("GPU unavailable, using CPU instead")
+        print('Pre GPU unavailable')
+        print(" wtfffff GPU unavailable, using CPU instead")
         print('Else')
         device = torch.device("cpu")
 
@@ -176,5 +181,7 @@ if __name__ == " __main__":
     with open('params.json', 'r') as param_reader:
         config = json.load(param_reader)
     
+    print('RUNNING SCRIPT')
     # run training loop
     train(config)
+    print('FINISHED TRAINING')
