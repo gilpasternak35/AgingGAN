@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from load_data import FacesDataset
 import json
 
+# displays a young_old pair in the data loader
 def display_young_old_(batch_idx, sample_idx):
 
     with open('params.json', 'r') as param_reader:
@@ -29,5 +30,27 @@ def display_young_old_(batch_idx, sample_idx):
             plt.imshow(old_images[sample_idx].permute(1, 2, 0))
             plt.show()
             break
+        else:
+            pass
+
+# generates a sample from the training dataset of your choice
+def generate_sample_image(batch_idx, sample_idx):
+
+    with open('params.json', 'r') as param_reader:
+            config = json.load(param_reader)
+
+    model_params, training_params= config['model_params'], config['training_params']
+
+    dataset = FacesDataset(config['data_path'], mode="conditional")
+    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=False)
+
+
+    for batch_num, img_label_pair in enumerate(dataloader):
+
+        young_images, old_images = img_label_pair
+        
+        if batch_num == batch_idx:
+            sample_young = young_images[sample_idx]
+            return sample_young
         else:
             pass
