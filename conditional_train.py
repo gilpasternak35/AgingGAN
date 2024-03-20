@@ -45,6 +45,8 @@ def train(config: dict) -> None:
     :param config: parameter configuration
     :return: Nothing, simply output results
     """
+
+
     # separating configs
     model_params, training_params= config['model_params'], config['training_params']
 
@@ -55,7 +57,6 @@ def train(config: dict) -> None:
     batch_size = model_params['batch_size']
     dataset = FacesDataset(config['data_path'], mode="conditional")
     dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=True)
-
 
     # using gpu if available
     if torch.cuda.is_available():
@@ -97,6 +98,7 @@ def train(config: dict) -> None:
 
             # obtaining young and old image
             discriminator.zero_grad()
+            young_images, old_images = img_label_pair
             young_images = young_images.to(device)
             old_images = old_images.to(device)
             generated_images = generator.forward(device, young_images).detach().to(device)
