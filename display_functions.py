@@ -11,31 +11,6 @@ import json
 from GBP import GuidedBackpropModel  
 
 
-# displays a young_old pair in the data loader
-def display_young_old_(batch_idx, sample_idx):
-
-    with open('params.json', 'r') as param_reader:
-            config = json.load(param_reader)
-
-    model_params, training_params= config['model_params'], config['training_params']
-
-    dataset = FacesDataset(config['data_path'], mode="conditional")
-    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=False)
-
-    for batch_num, img_label_pair in enumerate(dataloader):
-
-        young_images, old_images = img_label_pair
-
-        if batch_num == batch_idx:
-            print(f'There are {len(young_images)} images in the batch')
-            plt.imshow(young_images[sample_idx].permute(1, 2, 0))
-            plt.show()
-            plt.imshow(old_images[sample_idx].permute(1, 2, 0))
-            plt.show()
-            break
-        else:
-            pass
-
 # generates a sample from the training dataset of your choice
 def generate_sample_image(batch_idx, sample_idx):
 
@@ -96,6 +71,89 @@ def normalize(img):
     return (img - mini)/(maxi-mini)
 
 
+def sbs_disp_gbp(model, input, mode='basic'):
+
+    plt.figure(figsize=(10, 5))
+
+    permuted_inp = input.permute(1, 2, 0)
+    plt.subplot(1, 2, 1)
+    plt.imshow(permuted_inp)  
+    plt.title('Input')
+    plt.axis('off')
+
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    input = input[np.newaxis,:]
+
+    guided_backprop = GuidedBackpropModel(model)
+    guided_gradients = guided_backprop(device, input)
+
+    guided_gradients = np.squeeze(guided_gradients)
+    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
+
+    if mode == 'normalize':
+        guided_gradients = normalize(guided_gradients)
+
+    elif mode == 'enhance':
+        guided_gradients = normalize(guided_gradients)
+        mode = np.round(np.median(guided_gradients), 2)
+        guided_gradients[np.isclose(guided_gradients, mode, atol=0.01)] = 0
+
+    # Display the second image
+    plt.subplot(1, 2, 2)
+    plt.imshow(guided_gradients)  # Use cmap='gray' for grayscale images
+    plt.title('GBP')
+    plt.axis('off')
+
+def get_gbp(model, input, mode='basic'):
+
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    input = input[np.newaxis,:]
+
+    guided_backprop = GuidedBackpropModel(model)
+    guided_gradients = guided_backprop(device, input)
+
+    guided_gradients = np.squeeze(guided_gradients)
+
+    if mode == 'normalize':
+        guided_gradients = normalize(guided_gradients)
+
+    elif mode == 'enhance':
+        guided_gradients = normalize(guided_gradients)
+        guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
+        mode = np.round(np.median(guided_gradients), 2)
+        guided_gradients[np.isclose(guided_gradients, mode, atol=0.01)] = 0
+        return guided_gradients
+
+    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
+
+    return guided_gradients
+
+
+def get_gbp_normalized(model, input):
+
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    input = input[np.newaxis,:]
+
+    guided_backprop = GuidedBackpropModel(model)
+    guided_gradients = guided_backprop(device, input)
+
+    guided_gradients = np.squeeze(guided_gradients)
+    guided_gradients = normalize(guided_gradients)
+    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
+
+    return guided_gradients
+
+def enhance_gbp(gbp_input):
+
+    ## just blacks out the pixels 
+
+    accentuated_image = np.copy(gbp_input)
+    mode = np.round(np.median(accentuated_image), 2)
+
+    accentuated_image[np.isclose(accentuated_image, mode, atol=0.01)] = 0
+
+    return accentuated_image
+
 def run_gbp(model, input):
 
     plt.figure(figsize=(10, 5))
@@ -122,21 +180,6 @@ def run_gbp(model, input):
     plt.imshow(guided_gradients)  # Use cmap='gray' for grayscale images
     plt.title('GBP')
     plt.axis('off')
-
-
-def get_gbp(model, input):
-
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    input = input[np.newaxis,:]
-
-    guided_backprop = GuidedBackpropModel(model)
-    guided_gradients = guided_backprop(device, input)
-
-    guided_gradients = np.squeeze(guided_gradients)
-    guided_gradients = normalize(guided_gradients)
-    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
-
-    return guided_gradients
 
 
 
