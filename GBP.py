@@ -62,6 +62,7 @@ class GuidedBackpropModel:
 
     def __call__(self, device, input, index=None):
         print('input in __call__: ', input.shape)
+        input.requires_grad = True
         output = self.forward(device, input)
 
         print('output shape: ', output.shape)
