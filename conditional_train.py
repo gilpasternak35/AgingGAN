@@ -70,6 +70,7 @@ def train(config: dict) -> None:
     # obtaining number of epochs and learning rate
     num_epochs, lr = training_params['epochs'], training_params['lr']
     experiment_name = training_params['exp_name']
+    sim_weighting = training_params['sim_weighting']
 
     # initializing generator and discriminator, as well as optimizers and loss
     generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size).to(device)
@@ -95,7 +96,6 @@ def train(config: dict) -> None:
         for batch_num, img_label_pair in enumerate(dataloader):
 
             # obtaining young and old image
-            young_images, old_images = img_label_pair
             discriminator.zero_grad()
             young_images = young_images.to(device)
             old_images = old_images.to(device)
@@ -123,7 +123,7 @@ def train(config: dict) -> None:
             generator.zero_grad()
             generator_labels = torch.ones(batch_size,1).to(device)
             generations = generator.forward(device, young_images)
-            generator_loss = criterion(discriminator(generations), generator_labels) + 0.95*criterion2(generations, young_images)
+            generator_loss = criterion(discriminator(generations), generator_labels) + sim_weighting*criterion2(generations, young_images)
 
             # back-propagating
             generator_loss.backward()
@@ -168,10 +168,10 @@ def train(config: dict) -> None:
 
 
 
-if __name__ == " __main__":
+if __name__ == '__main__':
     # loading parameter config
     with open('params.json', 'r') as param_reader:
-        config = json.load(param_reader)
+        config = json.load(param_reader )
     
     # run training loop
     train(config)
