@@ -48,7 +48,7 @@ class FacesDataset(Dataset):
         # adding a conditional mode
         elif self.mode == "conditional":
             image_name_young, image_name_old = self.young_img_names[idx], self.old_img_names[idx]
-            image_young, image_old = Image.open(image_name_young), Image.open(image_name_young)
+            image_young, image_old = Image.open(image_name_young), Image.open(image_name_old)
 
             # applying transformations
             return self.resize(self.normalize(self.to_tensor(image_young))), self.resize(self.normalize(self.to_tensor(image_old)))
