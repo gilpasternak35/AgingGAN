@@ -1,12 +1,12 @@
 import torch.cuda
 from torch.optim import Adam
-from torch.nn import BCELoss
+from torch.nn import BCELoss, MSELoss
 from torch.optim.lr_scheduler import LinearLR
 from torch.utils.data import DataLoader
 from load_data import FacesDataset
 import matplotlib.pyplot as plt
 import json
-from deep_cn_gan import Generator, Discriminator
+from conditional_cn_baseline import Generator, Discriminator
 
 def show_images(data_path: str) -> None:
     """
@@ -16,7 +16,7 @@ def show_images(data_path: str) -> None:
     """
     # initializing dataloader upon pytorch dataset
     dset = FacesDataset(data_path)
-    loader = DataLoader(dset, batch_size=4)
+    loader = DataLoader(dset, batch_size=4, shuffle=True)
 
     # printing out by batch
     for batch in loader:
@@ -30,7 +30,7 @@ def show_images(data_path: str) -> None:
 def init_weights(layer: torch.nn.Module) -> None:
     """
     Initializes weights in a given layer
-    :param network: a network for whom to initialize weights
+    :param layer: a layer for whom to initialize weights
     :return: nothing, simply initialize the layer weights
     """
     # if initialize-able layer, initialize with normal distribution
@@ -45,14 +45,16 @@ def train(config: dict) -> None:
     :param config: parameter configuration
     :return: Nothing, simply output results
     """
-
     # separating configs
     model_params, training_params= config['model_params'], config['training_params']
 
-    # configuring dataloader
+    # checking plotting number is valid
+    assert training_params['num_to_plot'] < model_params['batch_size'], "can't plot more examples than available in batch"
+
+    # configuring dataloader, with conditional mode dataset (now returning young and old faces as ex label pairs)
     batch_size = model_params['batch_size']
-    dataset = FacesDataset(config['data_path'])
-    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'])
+    dataset = FacesDataset(config['data_path'], mode="conditional")
+    dataloader = DataLoader(dataset, batch_size = model_params['batch_size'], shuffle=True)
 
 
     # using gpu if available
@@ -67,6 +69,7 @@ def train(config: dict) -> None:
 
     # obtaining number of epochs and learning rate
     num_epochs, lr = training_params['epochs'], training_params['lr']
+    experiment_name = training_params['exp_name']
 
     # initializing generator and discriminator, as well as optimizers and loss
     generator = Generator(data_shape[0], model_params['hidden_generator_channels'], data_shape, batch_size).to(device)
@@ -75,28 +78,35 @@ def train(config: dict) -> None:
 
     # optimizers and loss
     gen_optimizer = Adam(params=generator.parameters(), lr=lr, betas=[0.5, 0.999])
-    disc_optimizer = Adam(params=discriminator.parameters(), lr=lr, betas=[0.5, 0.999])
-    criterion = BCELoss()
+    disc_optimizer = Adam(params=discriminator.parameters(), lr=lr)
+    criterion, criterion2= BCELoss(), MSELoss()
 
+    # initializing loss values
     generator_losses, discriminator_losses, epochs = [], [], []
     generator_loss, final_disc_loss = 0,0
+
+    # defined for plotting's sake
+    young_images = torch.Tensor()
 
     # for every epoch
     for epoch in range(num_epochs):
 
         # loading a batch
-        for batch_num, real_image_batch in enumerate(dataloader):
-            # appending generated images
+        for batch_num, img_label_pair in enumerate(dataloader):
+
+            # obtaining young and old image
+            young_images, old_images = img_label_pair
             discriminator.zero_grad()
-            generated_images = generator.forward(device).detach().to(device)
-            real_image_batch = real_image_batch.to(device)
+            young_images = young_images.to(device)
+            old_images = old_images.to(device)
+            generated_images = generator.forward(device, young_images).detach().to(device)
 
             # computing labels
             real_labels = torch.ones((batch_size,1)).to(device)
             fake_labels = torch.zeros((batch_size,1)).to(device)
 
             # zeroing out gradient and getting discriminator loss
-            discriminator_outputs_real = discriminator(real_image_batch)
+            discriminator_outputs_real = discriminator(old_images)
             discriminator_outputs_fake = discriminator(generated_images)
 
             # loss on real and generated
@@ -112,8 +122,8 @@ def train(config: dict) -> None:
             # getting generator loss - want discriminator outputs to be tricked into "real" labels
             generator.zero_grad()
             generator_labels = torch.ones(batch_size,1).to(device)
-            generations = generator.forward(device)
-            generator_loss = criterion(discriminator(generations), generator_labels)
+            generations = generator.forward(device, young_images)
+            generator_loss = criterion(discriminator(generations), generator_labels) + 0.95*criterion2(generations, young_images)
 
             # back-propagating
             generator_loss.backward()
@@ -121,7 +131,7 @@ def train(config: dict) -> None:
 
 
             # printing loss and the like
-            if batch_num % 50 == 0:
+            if batch_num % 30 == 0:
                 print(f"Batch num: {batch_num}, Epoch: {epoch}, Generator Loss: {generator_loss}, Discriminator Loss: {final_disc_loss}")
 
         # appending losses and current epoch for plotting
@@ -132,26 +142,36 @@ def train(config: dict) -> None:
         # showing generated images at the end of the epoch
         if epoch == num_epochs-1 or epoch % training_params['plot_every'] == 0:
             # plotting generations and loss curves
-            # TODO: is this the right way to do this?
-            pxls = (generator.forward(device)[0].cpu() +  1)/2
-            plt.imshow(pxls.detach().permute(1, 2, 0))
-            plt.show()
+
+            for idx in range(training_params['num_to_plot']):
+                pxls = (young_images[idx].cpu() + 1) / 2
+                plt.imshow(pxls.detach().permute(1, 2, 0))
+                plt.show()
+
+                pxls = (generator.forward(device, young_images)[idx].cpu() +  1)/2
+                plt.imshow(pxls.detach().permute(1, 2, 0))
+                plt.show()
 
             # plotting losses
             plt.plot(epochs, generator_losses)
             plt.plot(epochs, discriminator_losses)
             plt.show()
 
-            if epoch ==  num_epochs-1:
-                plt.savefig("loss_plots/dcgan_exp.png")
+            # saving model
+            print("saving generator")
+            torch.save(generator, f"models/conditional_gan_gen_epoch{epoch}exp{experiment_name}")
+
+            # saving model
+            print("saving discriminator")
+            torch.save(generator, f"models/conditional_gan_disc_epoch{epoch}exp{experiment_name}")
 
 
 
 
-if __name__ == "__main__":
+if __name__ == " __main__":
     # loading parameter config
     with open('params.json', 'r') as param_reader:
         config = json.load(param_reader)
-
+    
     # run training loop
     train(config)
