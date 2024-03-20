@@ -129,58 +129,6 @@ def get_gbp(model, input, mode='basic'):
     return guided_gradients
 
 
-def get_gbp_normalized(model, input):
-
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    input = input[np.newaxis,:]
-
-    guided_backprop = GuidedBackpropModel(model)
-    guided_gradients = guided_backprop(device, input)
-
-    guided_gradients = np.squeeze(guided_gradients)
-    guided_gradients = normalize(guided_gradients)
-    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
-
-    return guided_gradients
-
-def enhance_gbp(gbp_input):
-
-    ## just blacks out the pixels 
-
-    accentuated_image = np.copy(gbp_input)
-    mode = np.round(np.median(accentuated_image), 2)
-
-    accentuated_image[np.isclose(accentuated_image, mode, atol=0.01)] = 0
-
-    return accentuated_image
-
-def run_gbp(model, input):
-
-    plt.figure(figsize=(10, 5))
-
-    permuted_inp = input.permute(1, 2, 0)
-    plt.subplot(1, 2, 1)
-    plt.imshow(permuted_inp)  
-    plt.title('Input')
-    plt.axis('off')
-
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    input = input[np.newaxis,:]
-
-    guided_backprop = GuidedBackpropModel(model)
-    guided_gradients = guided_backprop(device, input)
-
-    guided_gradients = np.squeeze(guided_gradients)
-    guided_gradients = normalize(guided_gradients)
-    guided_gradients = np.transpose(guided_gradients, (1, 2, 0))
-
-
-    # Display the second image
-    plt.subplot(1, 2, 2)
-    plt.imshow(guided_gradients)  # Use cmap='gray' for grayscale images
-    plt.title('GBP')
-    plt.axis('off')
-
 
 
 
