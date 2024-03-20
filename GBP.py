@@ -57,15 +57,15 @@ class GuidedBackpropModel:
         return (GuidedBackpropLeakyReLU.apply(grad_input[0]),)
 
     def forward(self, device, input):
-        print('input in forward: ', input.shape)
+        #print('input in forward: ', input.shape)
         return self.model(device, input)
 
     def __call__(self, device, input, index=None):
-        print('input in __call__: ', input.shape)
+        #print('input in __call__: ', input.shape)
         input.requires_grad = True
         output = self.forward(device, input)
 
-        print('output shape: ', output.shape)
+        #print('output shape: ', output.shape)
 
         if index is None:
             # Find the index of the maximum value in the flattened tensor
@@ -75,20 +75,20 @@ class GuidedBackpropModel:
 
         # Zero out all previous gradients
         self.model.zero_grad()
-        print('index: ', index)
+        #print('index: ', index)
 
         # Backpropagate
         grad_output = torch.zeros_like(output.view(-1))  # Flatten grad_output
-        print('grad output shape: ', grad_output.shape)
+        #print('grad output shape: ', grad_output.shape)
 
         # Set the corresponding index to 1 in the unflattened tensor
         grad_output[index] = 1
         grad_output = grad_output.view(output.shape)
 
-        print('grad output shape post reshaping: ', grad_output.shape)
+        #print('grad output shape post reshaping: ', grad_output.shape)
 
         output.backward(gradient=grad_output)
 
         gbp = input.grad
-        print('gbp type: ', type(gbp))
+        #print('gbp type: ', type(gbp))
         return gbp
