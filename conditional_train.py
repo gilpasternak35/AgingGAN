@@ -97,6 +97,7 @@ def train(config: dict) -> None:
 
             # obtaining young and old image
             discriminator.zero_grad()
+            young_images, old_images = img_label_pair
             young_images = young_images.to(device)
             old_images = old_images.to(device)
             generated_images = generator.forward(device, young_images).detach().to(device)
