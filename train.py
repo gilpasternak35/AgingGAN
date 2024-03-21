@@ -1,7 +1,6 @@
 import torch.cuda
 from torch.optim import Adam
 from torch.nn import BCELoss
-from torch.optim.lr_scheduler import LinearLR
 from torch.utils.data import DataLoader
 from load_data import FacesDataset
 import matplotlib.pyplot as plt
