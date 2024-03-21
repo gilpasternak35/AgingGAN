@@ -165,7 +165,7 @@ def train(config: dict) -> None:
 
             # saving model
             print("saving discriminator")
-            torch.save(generator, f"models/conditional_gan_disc_epoch{epoch}exp{experiment_name}")
+            torch.save(discriminator, f"models/conditional_gan_disc_epoch{epoch}exp{experiment_name}")
 
 
 
