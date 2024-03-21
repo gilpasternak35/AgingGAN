@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from torchvision.utils import save_image
 
 
-def eval_model(model_path: str = "../models/conditional_gan_gen_epoch199expconditional_baseline", eval_data_path: str="../eval_data", save_dir: str = "../eval_results", display:bool=True, size:int = 36) -> None:
+def eval_model(model_path: str = "../models/conditional_gan_gen_epoch152expconditional_baseline", eval_data_path: str="../eval_data", save_dir: str = "../eval_results", display:bool=True, size:int = 36) -> None:
     """
     Loads a model, computes inference on a set of input image paths, displays them, and saves them in a corresponding directory
     """

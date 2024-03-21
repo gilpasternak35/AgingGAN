@@ -87,13 +87,14 @@ class Discriminator(nn.Module):
         self.linear_layer2 = nn.Linear(256, out_features = 1)
         self.classification_activation = nn.Sigmoid()
 
-    def forward(self, input: tensor) -> tensor:
+    def forward(self, device, input: tensor) -> tensor:
         """
         Takes in an input tensor and returns scalar probability that this tensor belongs to the actual data
         :param input: the input from the generator
         :return: the probability that this tensor belongs to the actual data
         """
         # computing hidden activation - this is an image
+        input = input.to(device)
         hidden_activation = self.activation(self.linear_layer(flatten(self.activation(self.conv_layer_2(self.activation(self.conv_layer(input)))),  start_dim=1)))
 
         # returning a result of linear layer applied to the flattened image.

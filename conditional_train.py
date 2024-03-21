@@ -108,8 +108,8 @@ def train(config: dict) -> None:
             fake_labels = torch.zeros((batch_size,1)).to(device)
 
             # zeroing out gradient and getting discriminator loss
-            discriminator_outputs_real = discriminator(old_images)
-            discriminator_outputs_fake = discriminator(generated_images)
+            discriminator_outputs_real = discriminator(device, old_images)
+            discriminator_outputs_fake = discriminator(device, generated_images)
 
             # loss on real and generated
             loss_real = criterion(discriminator_outputs_real, real_labels)
@@ -125,7 +125,7 @@ def train(config: dict) -> None:
             generator.zero_grad()
             generator_labels = torch.ones(batch_size,1).to(device)
             generations = generator.forward(device, young_images)
-            generator_loss = criterion(discriminator(generations), generator_labels) + sim_weighting*criterion2(generations, young_images)
+            generator_loss = criterion(discriminator(device, generations), generator_labels) + sim_weighting*criterion2(generations, young_images)
 
             # back-propagating
             generator_loss.backward()
