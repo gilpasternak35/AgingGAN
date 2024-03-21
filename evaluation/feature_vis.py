@@ -4,12 +4,10 @@ from torchvision.utils import save_image
 from conditional_cn_baseline import Generator as EvalGenerator
 import torch
 
-def visualize_features(layer_channel_idx: int, model_path:str,  write_to: str) -> None:
+def visualize_features(model_path:str) -> None:
    '''
    Uses gradient based optimization to figure out which features a given filter is learning
-   :param layer_channel_idx: tuple representing the specific channel indices of the filter to be optimized for
    :param model_path: the path of the model whose features shoudl be visualized
-   :param write_to: A directory to write the visualization to
    '''
    # selection of batch size and lr for learning process
    batch_size, lr = 16, 0.001
@@ -74,10 +72,11 @@ def visualize_features(layer_channel_idx: int, model_path:str,  write_to: str) -
 
       # showing what was learned by filter
       if epoch % 145 == 0:
-         plt.imshow(generations.detach()[0].permute(1,2,0))
+         fig = plt.imshow(generations.detach()[0].permute(1,2,0))
          plt.show()
 
+
 if __name__ == "__main__":
-    visualize_features((1,1), "../models/conditional_gan_gen_epoch199expconditional_baseline", "../eval_results/feature_vis.jpg")
+    visualize_features( "../models/conditional_gan_gen_epoch199expconditional_baseline")
 
 
